@@ -1,8 +1,6 @@
-#include <iostream>
-using namespace std;
+#include "image.h"
 int main() {
-
-	cout << "Hello world" << endl;
+	image first("t2_24.bmp");
 	system("pause");
 	return 0;
 }
