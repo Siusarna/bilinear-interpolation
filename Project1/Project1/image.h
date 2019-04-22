@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 using namespace std;
-/*
+
 typedef struct {
 	int8_t id[2];			
 	int32_t filesize;        
@@ -22,7 +22,7 @@ typedef struct {
 	int32_t biClrUsed;      
 	int32_t biClrImportant; 
 } BMPHEAD;
-*/
+
 /*
 typedef struct {
 	int8_t redComponent;
@@ -37,6 +37,8 @@ class image {
 	char *pixel;
 	string path;
 	char info[54]; //Temporary
+	int bytesPerLine;
+
 public:
 	image(string path) {
 		this->path = path;
@@ -45,21 +47,37 @@ public:
 		this->width = *(int*)&info[18];
 		this->height = *(int*)& info[22];
 
-		int row = (width * 3 + 3) & (~3);
-		pixel = new char[row];
+		//int row = (width * 3 + 3) & (~3);
+
+		bytesPerLine = this->width * 3;  /* (for 24 bit images) */
+		/* round up to a dword boundary */
+		if (bytesPerLine & 0x0003)
+		{
+			bytesPerLine |= 0x0003;
+			++bytesPerLine;
+		}
+
+		//pixel = new char[bytesPerLine];
+		pixel = (char *)calloc(1, bytesPerLine);
 		char temp;
-		for (int i = 0; i < this->height; i++) {
-			fin.read(pixel, row);
-			for (int j = 0; j < width * 3; j += 3) {
+		for (int i = this->height; i >=0; i--) {
+			fin.read(pixel, bytesPerLine);
+			/*for (int j = 0; j < width * 3; j += 3) {
 				temp = pixel[j];
 				pixel[j] = pixel[j + 2];
 				pixel[j + 2] = temp;
-			}
+			}*/
 		}
 		fin.close();
 	}
 	image(image& first, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
 	{
-
+		ofstream out;
+		out.open("result.bmp", ios::binary);
+		out.write((char*)&first.info, sizeof(first.info));
+		for(int i = first.height; i>=0;i--){
+			out.write(first.pixel, first.bytesPerLine);
+		}
+		out.close();
 	}
 };
