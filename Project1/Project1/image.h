@@ -5,6 +5,7 @@
 #include <string>
 using namespace std;
 
+#pragma pack(2)
 typedef struct {
 	int8_t id[2];			
 	int32_t filesize;        
@@ -33,35 +34,33 @@ typedef struct {
 
 class image {
 	//BMPHEAD head; - Temporary
-	int width, height;
 	char *pixel;
 	string path;
-	char info[54]; //Temporary
+	BMPHEAD info; //Temporary
 	int bytesPerLine;
 
 public:
 	image(string path) {
 		this->path = path;
 		ifstream fin(path, ios::binary);
-		fin.read(info, sizeof(info));
-		this->width = *(int*)&info[18];
-		this->height = *(int*)& info[22];
+		fin.read((char*)&info, sizeof(info));
+		cout << info.depth << endl;
 
 		//int row = (width * 3 + 3) & (~3);
 
-		bytesPerLine = this->width * 3;  /* (for 24 bit images) */
+		bytesPerLine = this->info.width * 3;  /* (for 24 bit images) */
 		/* round up to a dword boundary */
 		if (bytesPerLine & 0x0003)
 		{
 			bytesPerLine |= 0x0003;
 			++bytesPerLine;
 		}
-
+		//bh.filesize = bh.headersize + (long)bytesPerLine*bh.depth;
+		this->info.filesize = this->info.headersize + (long)bytesPerLine*this->info.depth;
 		//pixel = new char[bytesPerLine];
 		pixel = (char *)calloc(1, bytesPerLine);
-		char temp;
-		for (int i = this->height; i >=0; i--) {
-			fin.read(pixel, bytesPerLine);
+		for (int i = this->info.depth; i >=0; i--) {
+			fin.read(pixel,bytesPerLine);
 			/*for (int j = 0; j < width * 3; j += 3) {
 				temp = pixel[j];
 				pixel[j] = pixel[j + 2];
@@ -75,8 +74,8 @@ public:
 		ofstream out;
 		out.open("result.bmp", ios::binary);
 		out.write((char*)&first.info, sizeof(first.info));
-		for(int i = first.height; i>=0;i--){
-			out.write(first.pixel, first.bytesPerLine);
+		for(int i = 0; i<=first.info.depth;i++){
+			out.write((char*)&first.pixel[i], first.bytesPerLine);
 		}
 		out.close();
 	}
