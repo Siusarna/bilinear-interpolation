@@ -37,10 +37,8 @@ struct PIXELDATA
 
 class image {
 	//BMPHEAD head; - Temporary
-	char *pixel;
 	string path;
 	BMPHEAD info; //Temporary
-	int bytesPerLine;
 	PIXELDATA **arr;
 	int padding;
 
