@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #pragma once
 #include <fstream>
 #include <iostream>
@@ -24,13 +25,15 @@ typedef struct {
 	int32_t biClrImportant; 
 } BMPHEAD;
 
-/*
-typedef struct {
-	int8_t redComponent;
-	int8_t greenComponent;
-	int8_t blueComponent;
-} PIXELDATA;
-*/
+
+struct PIXELDATA
+{
+	char rgbRed;
+	char rgbGreen;
+	char rgbBlue;
+	char rgbReserved;
+};
+
 
 class image {
 	//BMPHEAD head; - Temporary
@@ -38,6 +41,7 @@ class image {
 	string path;
 	BMPHEAD info; //Temporary
 	int bytesPerLine;
+	PIXELDATA **arr;
 
 public:
 	image(string path) {
@@ -46,37 +50,49 @@ public:
 		fin.read((char*)&info, sizeof(info));
 		cout << info.depth << endl;
 
+		PIXELDATA rgb_l;
 		//int row = (width * 3 + 3) & (~3);
+		FILE * f1, *f2;
 
-		bytesPerLine = this->info.width * 3;  /* (for 24 bit images) */
-		/* round up to a dword boundary */
-		if (bytesPerLine & 0x0003)
+		f1 = fopen("t2_24.bmp", "rb");
+		f2 = fopen("result.bmp", "wb");
+
+		size_t padding = 0;//смещение байт
+		if ((this->info.width * 3) % 4)
 		{
-			bytesPerLine |= 0x0003;
-			++bytesPerLine;
-		}
-		//bh.filesize = bh.headersize + (long)bytesPerLine*bh.depth;
-		this->info.filesize = this->info.headersize + (long)bytesPerLine*this->info.depth;
-		//pixel = new char[bytesPerLine];
-		pixel = (char *)calloc(1, bytesPerLine);
-		for (int i = this->info.depth; i >=0; i--) {
-			fin.read(pixel,bytesPerLine);
+			padding = 4 - (this->info.width * 3) % 4;
+		};
+		this->arr = new PIXELDATA*[this->info.depth];
+		for(int i=0;i<this->info.depth;i++){
+			arr[i] = new PIXELDATA[this->info.width];
 			/*for (int j = 0; j < width * 3; j += 3) {
 				temp = pixel[j];
 				pixel[j] = pixel[j + 2];
 				pixel[j + 2] = temp;
 			}*/
 		}
+		for (int i = 0; i < this->info.depth; i++) {
+			fread(arr[i], sizeof(PIXELDATA), this->info.width, f1);
+			if (padding != 0) fread(&rgb_l, padding, 1, f1);
+		}
 		fin.close();
+		for (int i = 0; i < this->info.depth; i++)
+		{
+			fwrite(this->arr[i], sizeof(arr), this->info.width, f2);
+			if (padding != 0)
+			{
+				fwrite(&rgb_l, padding, 1, f2);
+			}
+		}
 	}
-	image(image& first, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
+	/*image(image& first, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
 	{
 		ofstream out;
 		out.open("result.bmp", ios::binary);
 		out.write((char*)&first.info, sizeof(first.info));
-		for(int i = 0; i<=first.info.depth;i++){
-			out.write((char*)&first.pixel[i], first.bytesPerLine);
+		for (int i = 0; i < arr.size(); i++) {
+			out.write((char*)&first.arr, sizeof(first.arr));
 		}
 		out.close();
-	}
+	}*/
 };
