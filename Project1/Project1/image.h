@@ -72,15 +72,27 @@ public:
 	}
 	image(image& first, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
 	{
+		
 		FILE *f2;
-		f2 = fopen("result.bmp", "wr");
+		f2 = fopen("result.bmp", "wb");
 
 		PIXELDATA rgb_l;
 
-		fwrite(&this->info, sizeof(info), 1, f2);
+		this->info.width = first.info.width * coefficient;
+		this->info.depth = first.info.depth * coefficient;
+		if ((this->info.width * 3) % 4) padding = 4 - (this->info.width * 3) % 4;
+		this->padding = padding;
+		this->arr = new PIXELDATA*[this->info.depth];
+		for (int i = 0; i < this->info.depth; i++) {
+			arr[i] = new PIXELDATA[this->info.width];
+		}
+
+
+
+		fwrite(&this->info, sizeof(this->info), 1, f2);
 		for (int i = 0; i < this->info.depth; i++)
 		{
-			fwrite(this->arr[i], sizeof(arr), this->info.width, f2);
+			fwrite(this->arr[i], sizeof(this->arr), this->info.width, f2);
 			if (padding != 0)
 			{
 				fwrite(&rgb_l, padding, 1, f2);
