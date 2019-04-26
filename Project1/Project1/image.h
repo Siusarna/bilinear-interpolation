@@ -82,13 +82,27 @@ public:
 		this->info.depth = first.info.depth * coefficient;
 		if ((this->info.width * 3) % 4) padding = 4 - (this->info.width * 3) % 4;
 		this->padding = padding;
+		this->info.biSizeImage = (this->info.depth*this->info.width * 3) + (padding*this->info.width);
+		this->info.filesize = this->info.biSizeImage + sizeof(BMPHEAD);
 		this->arr = new PIXELDATA*[this->info.depth];
 		for (int i = 0; i < this->info.depth; i++) {
 			arr[i] = new PIXELDATA[this->info.width];
 		}
 
+		PIXELDATA temp;
+		for (int i = 0; i < this->info.depth; i++) {
+			for (int k = 0; k < this->info.width; k++) {
+				temp = this->arr[i][k];
+				for (int j = 0; j < coefficient; j++) {
+
+				}
+			}
+		}
 
 
+
+
+		// write in file
 		fwrite(&this->info, sizeof(this->info), 1, f2);
 		for (int i = 0; i < this->info.depth; i++)
 		{
