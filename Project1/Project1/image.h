@@ -43,6 +43,7 @@ class image {
 	int padding;
 
 public:
+	image() {}
 	image(string path) {
 		this->path = path;
 
@@ -70,31 +71,40 @@ public:
 		}
 		
 	}
-	image(image& first, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
+	image(image& first, image& second, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
 	{
 		
 		FILE *f2;
 		f2 = fopen("result.bmp", "wb");
 
 		PIXELDATA rgb_l;
-
-		this->info.width = first.info.width * coefficient;
-		this->info.depth = first.info.depth * coefficient;
-		if ((this->info.width * 3) % 4) padding = 4 - (this->info.width * 3) % 4;
-		this->padding = padding;
-		this->info.biSizeImage = (this->info.depth*this->info.width * 3) + (padding*this->info.width);
-		this->info.filesize = this->info.biSizeImage + sizeof(BMPHEAD);
-		this->arr = new PIXELDATA*[this->info.depth];
-		for (int i = 0; i < this->info.depth; i++) {
-			arr[i] = new PIXELDATA[this->info.width];
+		second.info = first.info;
+		second.info.width = first.info.width * coefficient;
+		second.info.depth = first.info.depth * coefficient;
+		if ((second.info.width * 3) % 4) padding = 4 - (second.info.width * 3) % 4;
+		second.padding = padding;
+		second.info.biSizeImage = (second.info.depth*second.info.width * 3) + (padding*second.info.width);
+		second.info.filesize = second.info.biSizeImage + sizeof(BMPHEAD);
+		second.arr = new PIXELDATA*[second.info.depth];
+		for (int i = 0; i < second.info.depth; i++) {
+			second.arr[i] = new PIXELDATA[second.info.width];
 		}
 
 		PIXELDATA temp;
-		for (int i = 0; i < this->info.depth; i++) {
-			for (int k = 0; k < this->info.width; k++) {
-				temp = this->arr[i][k];
-				for (int j = 0; j < coefficient; j++) {
-
+		for (int i = 0; i < first.info.depth; i++) {
+			for (int j = 0; j < first.info.width; j++) {
+				temp = first.arr[i][j];
+				second.arr[i * 2][j * 2] = temp;
+				second.arr[i * 2 + 1][j * 2] = temp;
+				second.arr[i * 2][j * 2 + 1] = temp;
+				second.arr[i * 2 + 1][j * 2 + 1] = temp;
+			}
+			if (padding != 0) {
+				int p = 0;
+				PIXELDATA rgb;
+				while (p != padding) {
+					second.arr[i * 2][second.info.width - p] = rgb;
+					second.arr[i * 2 + 1][second.info.width - p] = rgb;
 				}
 			}
 		}
@@ -103,10 +113,10 @@ public:
 
 
 		// write in file
-		fwrite(&this->info, sizeof(this->info), 1, f2);
-		for (int i = 0; i < this->info.depth; i++)
+		fwrite(&second.info, sizeof(second.info), 1, f2);
+		for (int i = 0; i < second.info.depth; i++)
 		{
-			fwrite(this->arr[i], sizeof(this->arr), this->info.width, f2);
+			fwrite(second.arr[i], sizeof(second.arr), second.info.width, f2);
 			if (padding != 0)
 			{
 				fwrite(&rgb_l, padding, 1, f2);
