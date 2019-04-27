@@ -334,3 +334,4 @@ ASALocalRun/
 .localhistory/
 
 *.vcxproj
+*.vcxproj.filters
