@@ -32,6 +32,7 @@ struct PIXELDATA
 	char rgbGreen;
 	char rgbBlue;
 	char rgbReserved;
+	PIXELDATA() : rgbBlue('FF'), rgbGreen('FF'), rgbRed('FF'){}
 };
 
 
@@ -77,7 +78,6 @@ public:
 		FILE *f2;
 		f2 = fopen("result.bmp", "wb");
 
-		PIXELDATA rgb_l;
 		second.info = first.info;
 		second.info.width = first.info.width * coefficient;
 		second.info.depth = first.info.depth * coefficient;
@@ -105,6 +105,7 @@ public:
 				while (p != padding) {
 					second.arr[i * 2][second.info.width - p] = rgb;
 					second.arr[i * 2 + 1][second.info.width - p] = rgb;
+					p++;
 				}
 			}
 		}
