@@ -28,11 +28,11 @@ typedef struct {
 
 struct PIXELDATA
 {
-	char rgbRed;
-	char rgbGreen;
-	char rgbBlue;
-	char rgbReserved;
-	PIXELDATA() : rgbBlue('FF'), rgbGreen('FF'), rgbRed('FF'){}
+	int8_t rgbRed;
+	int8_t rgbGreen;
+	int8_t rgbBlue;
+	int8_t rgbReserved;
+	PIXELDATA() : rgbBlue(), rgbGreen(), rgbRed() {}
 };
 
 
@@ -64,15 +64,19 @@ public:
 		this->padding = padding;
 		this->arr = new PIXELDATA*[this->info.depth];
 		for(int i=0;i<this->info.depth;i++){
-			arr[i] = new PIXELDATA[this->info.width];
+			this->arr[i] = new PIXELDATA[this->info.width];
 		}
 		for (int i = 0; i < this->info.depth; i++) {
-			fread(arr[i], sizeof(PIXELDATA), this->info.width, f1);
-			if (padding != 0) fread(&rgb_l, padding, 1, f1);
+			for (int j = 0; j < this->info.width; j++) {
+				fread((char*)&this->arr[i][j].rgbBlue, 1, 1, f1);
+				fread((char*)&this->arr[i][j].rgbGreen, 1, 1, f1);
+				fread((char*)&this->arr[i][j].rgbRed, 1, 1, f1);
+			}
+			if (padding != 0) fread(&rgb_l, 1, padding, f1);
 		}
 		
 	}
-	image(image& first, image& second, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
+	image(image& first, image& second, int coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
 	{
 		PIXELDATA rgb;
 		FILE *f2;
@@ -91,36 +95,45 @@ public:
 		}
 
 		PIXELDATA temp;
-		for (int i = 0; i < first.info.depth; i++) {
+		for (int i = 0; i < first.info.depth; i++) {   //increase by half
 			for (int j = 0; j < first.info.width; j++) {
 				temp = first.arr[i][j];
 				second.arr[i * 2][j * 2] = temp;
 				second.arr[i * 2 + 1][j * 2] = temp;
 				second.arr[i * 2][j * 2 + 1] = temp;
 				second.arr[i * 2 + 1][j * 2 + 1] = temp;
-			}
-			if (padding != 0) {
-				int p = 0;
 				
-				while (p != padding) {
-					second.arr[i * 2][second.info.width - p] = rgb;
-					second.arr[i * 2 + 1][second.info.width - p] = rgb;
-					p++;
-				}
+				//second.arr[i][j] = temp;
 			}
+			
 		}
+		/*temp.rgbBlue = 0x00;
+		temp.rgbGreen = 0x00;
+		temp.rgbRed = 0x00;
+		for (int j = 0; j < second.info.depth; j++) {
+			for (int i = 0; i < second.info.width; i++) {
+				second.arr[j][i] = temp;
+			}
+		}*/
 
-
-
-
+		int8_t d = 0x00;
 		// write in file
 		fwrite(&second.info, sizeof(second.info), 1, f2);
 		for (int i = 0; i < second.info.depth; i++)
 		{
-			fwrite(second.arr[i], sizeof(second.arr), second.info.width, f2);
-			if (padding != 0)
+			for (int j = 0; j < second.info.width; j++) {
+
+				fwrite((char*)&second.arr[i][j].rgbBlue, 1, 1, f2);
+				fwrite((char*)&second.arr[i][j].rgbGreen, 1, 1, f2);
+				fwrite((char*)&second.arr[i][j].rgbRed, 1, 1, f2);
+			}
+			if (second.padding != 0)
 			{
-				fwrite(&rgb, padding, 1, f2);
+				int p = 0;
+				while (p < second.padding) {
+					fwrite(&d, 1, 1, f2);
+					p++;
+				}
 			}
 		}
 	}
