@@ -6,6 +6,7 @@
 #include <string>
 using namespace std;
 
+
 #pragma pack(2)
 typedef struct {
 	int8_t id[2];			
@@ -35,6 +36,7 @@ struct PIXELDATA
 	PIXELDATA() : rgbBlue(), rgbGreen(), rgbRed() {}
 };
 
+void resample(PIXELDATA **a, PIXELDATA **b, int oldw, int oldh, int neww, int newh);
 
 class image {
 	//BMPHEAD head; - Temporary
@@ -76,15 +78,15 @@ public:
 		}
 		
 	}
-	image(image& first, image& second, int coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
+	image(image& first, image& second, double coefficient) //TODO: image incease algorithm (use this constructor, Siusarna)
 	{
 		PIXELDATA rgb;
 		FILE *f2;
 		f2 = fopen("result.bmp", "wb");
 
 		second.info = first.info;
-		second.info.width = first.info.width * coefficient;
-		second.info.depth = first.info.depth * coefficient;
+		second.info.width = ceil(first.info.width * coefficient);
+		second.info.depth = ceil(first.info.depth * coefficient);
 		if ((second.info.width * 3) % 4) padding = 4 - (second.info.width * 3) % 4;
 		second.padding = padding;
 		second.info.biSizeImage = (second.info.depth*second.info.width * 3) + (padding*second.info.width);
@@ -94,19 +96,7 @@ public:
 			second.arr[i] = new PIXELDATA[second.info.width];
 		}
 
-		PIXELDATA temp;
-		for (int i = 0; i < first.info.depth; i++) {   //increase by half
-			for (int j = 0; j < first.info.width; j++) {
-				temp = first.arr[i][j];
-				second.arr[i * 2][j * 2] = temp;
-				second.arr[i * 2 + 1][j * 2] = temp;
-				second.arr[i * 2][j * 2 + 1] = temp;
-				second.arr[i * 2 + 1][j * 2 + 1] = temp;
-				
-				//second.arr[i][j] = temp;
-			}
-			
-		}
+		resample(first.arr, second.arr, first.info.width, first.info.depth, second.info.width, second.info.depth);
 		/*temp.rgbBlue = 0x00;
 		temp.rgbGreen = 0x00;
 		temp.rgbRed = 0x00;
@@ -116,7 +106,7 @@ public:
 			}
 		}*/
 
-		int8_t d = 0x00;
+		int8_t d = 0xFF;
 		// write in file
 		fwrite(&second.info, sizeof(second.info), 1, f2);
 		for (int i = 0; i < second.info.depth; i++)
