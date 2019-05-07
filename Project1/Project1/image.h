@@ -153,3 +153,5 @@ class imageWriter : public image {
 public:
 	void writeImage(string path, image &img);
 };
+
+void getArguments(int argc, char* argv[], string& pathRead, string& pathSave, int& coefficient);

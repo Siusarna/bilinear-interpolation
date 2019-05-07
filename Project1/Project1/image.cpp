@@ -106,7 +106,7 @@ void imageReader::readImage(string path)
 	}
 }
 /*
-	void imageResizer::resize(image& first, image& second, double coefficient)
+	void imageResizer::resize(image& first, image& second, double coefficient) //TODO:Algorithm
 	{
 		return;
 	}
@@ -135,4 +135,13 @@ void imageReader::readImage(string path)
 				}
 			}
 		}
+	}
+
+	void getArguments(int argc, char* argv[], string &pathRead, string &pathSave, int &coefficient) {
+
+		pathRead = argv[1];
+		pathSave = argv[2];
+		string coef = argv[3];
+		coefficient = stoi(coef);
+
 	}
