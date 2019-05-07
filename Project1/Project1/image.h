@@ -39,6 +39,7 @@ struct PIXELDATA
 void resample(PIXELDATA **a, PIXELDATA **b, int oldw, int oldh, int neww, int newh);
 
 class image {
+protected:
 	//BMPHEAD head; - Temporary
 	string path;
 	BMPHEAD info; //Temporary
@@ -46,6 +47,15 @@ class image {
 	int padding;
 
 public:
+	BMPHEAD getHeader() {
+		return this->info;
+	}
+	PIXELDATA** getPixelData() {
+		return this->arr;
+	}
+	int getPadding() {
+		return this->padding;
+	}
 	image() {}
 	image(string path) {
 		this->path = path;
@@ -127,4 +137,19 @@ public:
 			}
 		}
 	}
+};
+
+class imageReader : public image {
+public:
+	void readImage(string path);
+};
+
+class imageResizer : public image {
+public:
+	void resize(image& first, image& second, double coefficient);
+};
+
+class imageWriter : public image {
+public:
+	void writeImage(string path, image &img);
 };

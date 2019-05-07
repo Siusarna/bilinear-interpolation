@@ -73,3 +73,66 @@ void resample(PIXELDATA **a, PIXELDATA **b, int oldw, int oldh, int neww, int ne
 		}
 	}
 }
+
+void imageReader::readImage(string path)
+{
+	//image img;
+
+	PIXELDATA rgb_l; //empty pixel
+
+	//int row = (width * 3 + 3) & (~3);
+	FILE* f1;
+	f1 = fopen((char*)& path, "rb");
+
+	fread(&this->info, sizeof(info), 1, f1);
+
+	size_t padding = 0;//зміщення байт
+	if ((this->info.width * 3) % 4)
+	{
+		padding = 4 - (this->info.width * 3) % 4;
+	};
+	this->padding = padding;
+	this->arr = new PIXELDATA * [this->info.depth];
+	for (int i = 0; i < this->info.depth; i++) {
+		this->arr[i] = new PIXELDATA[this->info.width];
+	}
+	for (int i = 0; i < this->info.depth; i++) {
+		for (int j = 0; j < this->info.width; j++) {
+			fread((char*)& this->arr[i][j].rgbBlue, 1, 1, f1);
+			fread((char*)& this->arr[i][j].rgbGreen, 1, 1, f1);
+			fread((char*)& this->arr[i][j].rgbRed, 1, 1, f1);
+		}
+		if (padding != 0) fread(&rgb_l, 1, padding, f1);
+	}
+}
+/*
+	void imageResizer::resize(image& first, image& second, double coefficient)
+	{
+		return;
+	}
+	*/
+
+	void imageWriter::writeImage(string path, image &img)
+	{
+		FILE* f2;
+		f2 = fopen("result.bmp", "wb");
+		int8_t d = 0xFF;
+		fwrite(&img.getHeader(), sizeof(img.getHeader()), 1, f2);
+		for (int i = 0; i < img.getHeader().depth; i++)
+		{
+			for (int j = 0; j < img.getHeader().width; j++) {
+
+				fwrite((char*)& img.getPixelData()[i][j].rgbBlue, 1, 1, f2);
+				fwrite((char*)& img.getPixelData()[i][j].rgbGreen, 1, 1, f2);
+				fwrite((char*)& img.getPixelData()[i][j].rgbRed, 1, 1, f2);
+			}
+			if (img.getPadding() != 0)
+			{
+				int p = 0;
+				while (p < img.getPadding()) {
+					fwrite(&d, 1, 1, f2);
+					p++;
+				}
+			}
+		}
+	}
