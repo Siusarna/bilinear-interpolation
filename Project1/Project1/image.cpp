@@ -7,59 +7,31 @@ void resample(PIXELDATA **a, PIXELDATA **b, int oldw, int oldh, int neww, int ne
 	int l;
 	int c;
 	float t;
+	int x, y, x_diff, y_diff;
+	float x_ratio = ((float)(oldh - 1) / newh);
+	float y_ratio = ((float)(oldw - 1) / neww);
 	float u;
 	float tmp;
 	float d1, d2, d3, d4;
-	//unsigned int p1, p2, p3, p4; /* Окрестные пикселы */
-	//uint8_t red, green, blue;
 	PIXELDATA p1, p2, p3, p4,temp;
 
 	for (i = 0; i < newh; i++) {
 		for (j = 0; j < neww; j++) {
 
-			tmp = (float)(i) / (float)(newh - 1) * (oldh - 1);
-			l = (int)floor(tmp);
-			if (l < 0) {
-				l = 0;
-			}
-			else {
-				if (l >= oldh - 1) {
-					l = oldh - 2;
-				}
-			}
-			u = tmp - l;
-
-			tmp = (float)(j) / (float)(neww - 1) * (oldw - 1);
-			c = (int)floor(tmp);
-			if (c < 0) {
-				c = 0;
-			}
-			else {
-				if (c >= oldw - 1) {
-					c = oldw - 2;
-				}
-			}
-			t = tmp - c;
-
+			x = (int)(x_ratio*i);
+			y = (int)(y_ratio*j);
+			x_diff = (x_ratio*i) - x;
+			y_diff = (y_ratio*j) - y;
+			l = (int)floor(x);
+			c = (int)floor(y);
+			
 			/* Коэффициенты */
-			d1 = (1 - t) * (1 - u);
-			d2 = t * (1 - u);
-			d3 = t * u;
-			d4 = (1 - t) * u;
+			d1 = (1 - x_diff) * (1 - y_diff);
+			d2 = x_diff * (1 - y_diff);
+			d3 = x_diff * y_diff;
+			d4 = (1 - x_diff) * y_diff;
 
-			/* Окрестные пиксели: a[i][j] 
-			p1 = *((uint8_t*)a + (l * oldw) + c);
-			p2 = *((uint8_t*)a + (l * oldw) + c + 1);
-			p3 = *((uint8_t*)a + ((l + 1)* oldw) + c + 1);
-			p4 = *((uint8_t*)a + ((l + 1)* oldw) + c);
-
-			 Компоненты 
-			blue = (uint8_t)p1 * d1 + (uint8_t)p2 * d2 + (uint8_t)p3 * d3 + (uint8_t)p4 * d4;
-			green = (uint8_t)(p1 >> 8) * d1 + (uint8_t)(p2 >> 8) * d2 + (uint8_t)(p3 >> 8) * d3 + (uint8_t)(p4 >> 8) * d4;
-			red = (uint8_t)(p1 >> 16) * d1 + (uint8_t)(p2 >> 16) * d2 + (uint8_t)(p3 >> 16) * d3 + (uint8_t)(p4 >> 16) * d4;
-
-			 Новый пиксел из R G B  
-			*((uint8_t*)b + (i * neww) + j) = (red << 16) | (green << 8) | (blue);*/
+		
 			p1 = a[l][c];
 			p2 = a[l][c + 1];
 			p3 = a[l + 1][c + 1];
@@ -80,7 +52,6 @@ void imageReader::readImage(string path)
 
 	PIXELDATA rgb_l; //empty pixel
 
-	//int row = (width * 3 + 3) & (~3);
 	FILE* f1;
 	f1 = fopen((char*)& path, "rb");
 

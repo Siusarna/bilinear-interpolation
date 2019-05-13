@@ -42,11 +42,12 @@ class image {
 protected:
 	//BMPHEAD head; - Temporary
 	string path;
-	BMPHEAD info; //Temporary
+	
 	PIXELDATA **arr;
 	int padding;
 
 public:
+	BMPHEAD info; //Temporary
 	BMPHEAD getHeader() {
 		return this->info;
 	}
@@ -62,9 +63,8 @@ public:
 
 		PIXELDATA rgb_l; //empty pixel
 
-		//int row = (width * 3 + 3) & (~3);
 		FILE * f1;
-		f1 = fopen("t2_24.bmp", "rb");
+		f1 = fopen("t2_24.bmp", "rb"); //треба передати в fopen path
 
 		fread(&this->info, sizeof(info), 1, f1);
 
@@ -92,7 +92,7 @@ public:
 	{
 		PIXELDATA rgb;
 		FILE *f2;
-		f2 = fopen("result.bmp", "wb");
+		f2 = fopen("result.bmp", "wb");// передати в fopen path
 
 		second.info = first.info;
 		second.info.width = ceil(first.info.width * coefficient);
@@ -107,14 +107,7 @@ public:
 		}
 
 		resample(first.arr, second.arr, first.info.width, first.info.depth, second.info.width, second.info.depth);
-		/*temp.rgbBlue = 0x00;
-		temp.rgbGreen = 0x00;
-		temp.rgbRed = 0x00;
-		for (int j = 0; j < second.info.depth; j++) {
-			for (int i = 0; i < second.info.width; i++) {
-				second.arr[j][i] = temp;
-			}
-		}*/
+		
 
 		int8_t d = 0xFF;
 		// write in file
