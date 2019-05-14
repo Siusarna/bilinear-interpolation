@@ -46,73 +46,81 @@ void resample(PIXELDATA **a, PIXELDATA **b, int oldw, int oldh, int neww, int ne
 	}
 }
 
-void imageReader::readImage(string path)
-{
-	//image img;
+void getArguments(int argc, char* argv[], string &pathRead, string &pathSave, double &coefficient) {
+	pathRead = argv[1];
+	pathSave = argv[2];
+	string coef = argv[3];
+	coefficient = stoi(coef);
 
+}
+
+image imageReader::read(string path) {
+	image im;
+	const int n = path.length();
+	char *char_path = new char[n + 1];
+	strcpy(char_path, path.c_str());
 	PIXELDATA rgb_l; //empty pixel
 
-	FILE* f1;
-	f1 = fopen((char*)& path, "rb");
-
-	fread(&this->info, sizeof(info), 1, f1);
+	FILE * f1;
+	f1 = fopen(char_path, "rb");
+	fread(&im.info, sizeof(im.info), 1, f1);
 
 	size_t padding = 0;//зміщення байт
-	if ((this->info.width * 3) % 4)
-	{
-		padding = 4 - (this->info.width * 3) % 4;
-	};
-	this->padding = padding;
-	this->arr = new PIXELDATA * [this->info.depth];
-	for (int i = 0; i < this->info.depth; i++) {
-		this->arr[i] = new PIXELDATA[this->info.width];
+	if ((im.info.width * 3) % 4) {
+		padding = 4 - (im.info.width * 3) % 4;
 	}
-	for (int i = 0; i < this->info.depth; i++) {
-		for (int j = 0; j < this->info.width; j++) {
-			fread((char*)& this->arr[i][j].rgbBlue, 1, 1, f1);
-			fread((char*)& this->arr[i][j].rgbGreen, 1, 1, f1);
-			fread((char*)& this->arr[i][j].rgbRed, 1, 1, f1);
+	im.padding = padding;
+	im.arr = new PIXELDATA*[im.info.depth];
+	for (int i = 0; i < im.info.depth; i++) {
+		im.arr[i] = new PIXELDATA[im.info.width];
+	}
+	for (int i = 0; i < im.info.depth; i++) {
+		for (int j = 0; j < im.info.width; j++) {
+			fread((char*)&im.arr[i][j].rgbBlue, 1, 1, f1);
+			fread((char*)&im.arr[i][j].rgbGreen, 1, 1, f1);
+			fread((char*)&im.arr[i][j].rgbRed, 1, 1, f1);
 		}
 		if (padding != 0) fread(&rgb_l, 1, padding, f1);
 	}
+	return im;
 }
-/*
-	void imageResizer::resize(image& first, image& second, double coefficient) //TODO:Algorithm
-	{
-		return;
+
+image imageResizer::resize(image &first,int coefficient) {
+	image second;
+	int padding; 
+
+	second.info = first.info;
+	second.info.width = ceil(first.info.width * coefficient);
+	second.info.depth = ceil(first.info.depth * coefficient);
+	if ((second.info.width * 3) % 4) padding = 4 - (second.info.width * 3) % 4;
+	second.padding = padding;
+	second.info.biSizeImage = (second.info.depth*second.info.width * 3) + (padding*second.info.width);
+	second.info.filesize = second.info.biSizeImage + sizeof(BMPHEAD);
+	second.arr = new PIXELDATA*[second.info.depth];
+	for (int i = 0; i < second.info.depth; i++) {
+		second.arr[i] = new PIXELDATA[second.info.width];
 	}
-	*/
+	resample(first.arr, second.arr, first.info.width, first.info.depth, second.info.width, second.info.depth);
+	return second;
+}
 
-	void imageWriter::writeImage(string path, image &img)
-	{
-		FILE* f2;
-		f2 = fopen("result.bmp", "wb");
-		int8_t d = 0xFF;
-		fwrite(&img.getHeader(), sizeof(img.getHeader()), 1, f2);
-		for (int i = 0; i < img.getHeader().depth; i++)
-		{
-			for (int j = 0; j < img.getHeader().width; j++) {
-
-				fwrite((char*)& img.getPixelData()[i][j].rgbBlue, 1, 1, f2);
-				fwrite((char*)& img.getPixelData()[i][j].rgbGreen, 1, 1, f2);
-				fwrite((char*)& img.getPixelData()[i][j].rgbRed, 1, 1, f2);
-			}
-			if (img.getPadding() != 0)
-			{
-				int p = 0;
-				while (p < img.getPadding()) {
-					fwrite(&d, 1, 1, f2);
-					p++;
-				}
+void imageSaver::save(image & im, string path) {
+	FILE* f2;
+	f2 = fopen("result.bmp", "wb");
+	int8_t d = 0xFF;
+	fwrite(&im.info, sizeof(im.info), 1, f2);
+	for (int i = 0; i < im.info.depth; i++) {
+		for (int j = 0; j < im.info.width; j++) {
+			fwrite((char*)& im.arr[i][j].rgbBlue, 1, 1, f2);
+			fwrite((char*)& im.arr[i][j].rgbGreen, 1, 1, f2);
+			fwrite((char*)& im.arr[i][j].rgbRed, 1, 1, f2);
+		}
+		if (im.padding != 0) {
+			int p = 0;
+			while (p < im.padding) {
+				fwrite(&d, 1, 1, f2);
+				p++;
 			}
 		}
 	}
-
-	void getArguments(int argc, char* argv[], string &pathRead, string &pathSave, int &coefficient) {
-
-		pathRead = argv[1];
-		pathSave = argv[2];
-		string coef = argv[3];
-		coefficient = stoi(coef);
-
-	}
+}
