@@ -85,7 +85,7 @@ image imageReader::read(string path) {
 	return im;
 }
 
-image imageResizer::resize(image &first,int coefficient) {
+image imageResizer::resize(image &first,double coefficient) {
 	image second;
 	int padding; 
 
