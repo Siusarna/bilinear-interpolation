@@ -54,7 +54,7 @@ public:
 
 class imageResizer {
 public:
-	image resize(image &first,int coefficient);
+	image resize(image &first,double coefficient);
 };
 
 class imageSaver {

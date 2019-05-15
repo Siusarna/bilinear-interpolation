@@ -85,13 +85,13 @@ image imageReader::read(string path) {
 	return im;
 }
 
-image imageResizer::resize(image &first,int coefficient) {
+image imageResizer::resize(image &first,double coefficient) {
 	image second;
 	int padding; 
-
+	double coef = fabs(coefficient);
 	second.info = first.info;
-	second.info.width = ceil(first.info.width * coefficient);
-	second.info.depth = ceil(first.info.depth * coefficient);
+	second.info.width = ceil(first.info.width * coef);
+	second.info.depth = ceil(first.info.depth * coef);
 	if ((second.info.width * 3) % 4) padding = 4 - (second.info.width * 3) % 4;
 	second.padding = padding;
 	second.info.biSizeImage = (second.info.depth*second.info.width * 3) + (padding*second.info.width);
@@ -101,6 +101,13 @@ image imageResizer::resize(image &first,int coefficient) {
 		second.arr[i] = new PIXELDATA[second.info.width];
 	}
 	resample(first.arr, second.arr, first.info.width, first.info.depth, second.info.width, second.info.depth);
+	if (coefficient < 0) {
+		for (int i = 0; i < (second.info.depth)/2; i++) {
+			for (int j =0; j < second.info.width-1; j++) {
+				swap(second.arr[i][j], second.arr[second.info.depth - i - 1][second.info.width-j-1]);
+			}
+		}
+	}
 	return second;
 }
 
